@@ -1,14 +1,13 @@
 ### Repository Structure
 
 ```bash
-fsutil/
-├── fsutil/          # Main package: everything that takes afero.Fs
-│   ├── fsutil.go
-│   ├── cross.go
-│   ├── copydir.go
-│   ├── atomic.go
-│   ├── mkdir.go
-│   └── doc.go
+fsutil/  # Main package: everything that takes afero.Fs
+├── fsutil.go
+├── cross.go
+├── copydir.go
+├── atomic.go
+├── mkdir.go
+└── doc.go
 ├── osutil/              # Convenience functions for real OS filesystem
 │   └── os.go
 ├── fstest/          # Testing helpers
@@ -20,57 +19,7 @@ fsutil/
 
 ---
 
-### 1. `fsutil/fsutil.go`
-
-```go
-// Package fsutil provides utilities for working with afero.Fs (and real OS filesystem via the os subpackage).
-package fsutil
-
-import (
-	"github.com/spf13/afero"
-	"io"
-	"path/filepath"
-)
-
-// Copy copies a single file within the same filesystem.
-func Copy(fs afero.Fs, src, dst string) error {
-	return copyFile(fs, fs, src, dst)
-}
-
-// copyFile is the internal shared implementation.
-func copyFile(srcFS, dstFS afero.Fs, src, dst string) error {
-	if err := MkdirAll(dstFS, filepath.Dir(dst), 0o755); err != nil {
-		return err
-	}
-
-	srcFile, err := srcFS.Open(src)
-	if err != nil {
-		return err
-	}
-	defer srcFile.Close()
-
-	dstFile, err := dstFS.Create(dst)
-	if err != nil {
-		return err
-	}
-	defer dstFile.Close()
-
-	if _, err = io.Copy(dstFile, srcFile); err != nil {
-		return err
-	}
-
-	// Best-effort permission preservation
-	if fi, err := srcFile.Stat(); err == nil {
-		_ = dstFS.Chmod(dst, fi.Mode().Perm())
-	}
-
-	return dstFile.Sync()
-}
-```
-
----
-
-### 2. `fsutil/cross.go`
+### 2. `cross.go`
 
 ```go
 package fsutil
@@ -95,7 +44,7 @@ func CopyFromOs(dstFS afero.Fs, src, dst string) error {
 
 ---
 
-### 3. `fsutil/copydir.go`
+### 3. `copydir.go`
 
 ```go
 package fsutil
@@ -130,22 +79,7 @@ func CopyDir(srcFS, dstFS afero.Fs, src, dst string) error {
 
 ---
 
-### 4. `fsutil/mkdir.go`
-
-```go
-package fsutil
-
-import "github.com/spf13/afero"
-
-// MkdirAll creates a directory and all parent directories.
-func MkdirAll(fs afero.Fs, path string, perm os.FileMode) error {
-	return fs.MkdirAll(path, perm)
-}
-```
-
----
-
-### 5. `fsutil/atomic.go` (bonus)
+### 5. `atomic.go` (bonus)
 
 ```go
 package fsutil
@@ -182,7 +116,7 @@ func WriteFileAtomic(fs afero.Fs, name string, data []byte, perm os.FileMode) er
 
 ---
 
-### 6. `fsutil/fstest/fs.go`
+### 6. `fstest/fs.go`
 
 ```go
 // Package fstest provides testing helpers for filesystem assertions.
@@ -267,20 +201,17 @@ func equalRecursive(fs1, fs2 afero.Fs, root string, checkPerms bool) (bool, erro
 
 ---
 
-### 7. `fsutil/os/os.go`
+### 7. `osutil/os.go`
 
 ```go
-// Package os provides convenient functions that operate directly on the real OS filesystem.
-package os
+// Package osutil provides convenient functions that operate directly on the real OS filesystem.
+package osutil
 
 import (
 	"github.com/spf13/afero"
-	"github.com/yourname/fsutil" // ← change to your actual module path
+	"github.com/MarkRosemaker/fsutil"
 )
 
-func Copy(src, dst string) error {
-	return fsutil.Copy(afero.NewOsFs(), src, dst)
-}
 
 func CopyDir(src, dst string) error {
 	return fsutil.CopyDir(afero.NewOsFs(), afero.NewOsFs(), src, dst)
