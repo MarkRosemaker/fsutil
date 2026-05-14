@@ -23,13 +23,13 @@ func copyFile(srcFS, dstFS afero.Fs, src, dst string) error {
 	if err != nil {
 		return err
 	}
-	defer srcFile.Close()
+	defer srcFile.Close() //nolint:errcheck
 
 	dstFile, err := dstFS.Create(dst)
 	if err != nil {
 		return err
 	}
-	defer dstFile.Close()
+	defer dstFile.Close() //nolint:errcheck
 
 	if _, err = io.Copy(dstFile, srcFile); err != nil {
 		return err
