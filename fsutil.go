@@ -31,7 +31,7 @@ func copyFile(srcFS, dstFS afero.Fs, src, dst string) error {
 	}
 	defer dstFile.Close() //nolint:errcheck
 
-	if _, err = io.Copy(dstFile, srcFile); err != nil {
+	if _, err := io.Copy(dstFile, srcFile); err != nil {
 		return err
 	}
 
